@@ -3959,9 +3959,11 @@ $('adminToggleBtn').addEventListener('click', async ()=>{
   if(isAdmin){
     isAdmin = false;
     await sb.auth.signOut();
-    await sb.auth.signInAnonymously(); // теряем права админа, но не саму возможность читать базу
+    await sb.auth.signInAnonymously(); // теряем права админа, но не саму возможность зайти на сайт
+    isPreviewMode = true; // без кода — только предпросмотр с замаскированными данными
+    try{ localStorage.setItem(PREVIEW_MODE_KEY, '1'); }catch(e){}
     applyAdminUI();
-    render();
+    await proceedToApp();
     showToast('Вы вышли из режима администратора');
   } else {
     openAdminModal();
