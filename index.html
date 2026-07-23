@@ -4109,6 +4109,9 @@ $('accessCodeSubmitBtn').addEventListener('click', async ()=>{
     // теперь тоже отказывает в чтении, даже в обход сайта.
     const { data, error } = await sb.rpc('redeem_access_code', { input_code: code });
     if(error || !data){
+      // Если функция вернула ошибку (а не просто false за неверный код) — скорее всего,
+      // это сработал лимит попыток; показываем её текст, а не общую фразу про неверный код.
+      errEl.textContent = error ? error.message : 'Неверный или уже использованный код';
       errEl.style.display = '';
       input.value = '';
       input.focus();
