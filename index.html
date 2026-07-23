@@ -1629,7 +1629,6 @@
   <div class="offline-inner">
     <h1 class="offline-title">Нет подключения</h1>
     <p class="offline-sub">Не удалось загрузить базу — проверьте интернет-соединение.<br>А пока можно размяться:</p>
-    <p class="offline-sub" id="offlineErrorDetail" style="display:none;font-size:12px;opacity:.7;font-family:var(--mc);"></p>
 
     <div class="offline-game-switch">
       <button class="offline-game-tab" id="tabBugGame">Баги</button>
@@ -2582,10 +2581,36 @@ async function renderAccessCodesList(){
       <span class="code-row-status">${row.used ? 'использован' : 'свободен'}</span>
       <span class="code-row-actions">
         <button class="btn-ghost code-row-copy" title="Скопировать">${iconCopy()}</button>
+        ${row.used ? `<button class="btn-ghost code-row-endsession" title="Завершить сессию — жёстко отозвать доступ прямо сейчас">${iconEndSession()}</button>` : ''}
         <button class="btn-ghost code-row-delete" title="Удалить код">${iconTrash()}</button>
       </span>
     `;
     rowEl.querySelector('.code-row-copy').addEventListener('click', (ev)=> copyToClipboard(row.code, ev.currentTarget));
+    const endSessionBtn = rowEl.querySelector('.code-row-endsession');
+    if(endSessionBtn){
+      endSessionBtn.addEventListener('click', async ()=>{
+        if(!confirm(`Жёстко отозвать доступ по коду «${row.code}»? Покупатель будет немедленно выкинут из базы, код перестанет работать.`)) return;
+        endSessionBtn.disabled = true;
+        try{
+          const { data: sessionData } = await sb.auth.getSession();
+          const jwt = sessionData?.session?.access_token;
+          const { data: fnData, error: fnError } = await sb.functions.invoke('kill-session', {
+            body: { code: row.code },
+            headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+          });
+          if(fnError || fnData?.error){
+            showToast('Не удалось отозвать доступ: ' + (fnData?.error || fnError.message));
+            return;
+          }
+          showToast('Доступ отозван, сессия завершена');
+          renderAccessCodesList();
+        }catch(err){
+          showToast('Не удалось отозвать доступ: ' + err.message);
+        }finally{
+          endSessionBtn.disabled = false;
+        }
+      });
+    }
     rowEl.querySelector('.code-row-delete').addEventListener('click', async ()=>{
       if(!confirm(`Удалить код «${row.code}»?`)) return;
       const { error: delError } = await sb.from('access_codes').delete().eq('code', row.code);
@@ -4032,17 +4057,9 @@ updateColumnMode();
 
 const offlineScreen = $('offlineScreen');
 function showOfflineScreen(errorDetail){
+  if(errorDetail) console.error('offline screen shown, reason:', errorDetail);
   document.body.classList.remove('theme-loading');
   offlineScreen.classList.add('show');
-  const detailEl = $('offlineErrorDetail');
-  if(detailEl){
-    if(errorDetail){
-      detailEl.textContent = 'Причина: ' + errorDetail;
-      detailEl.style.display = '';
-    } else {
-      detailEl.style.display = 'none';
-    }
-  }
   setupOfflineGameTabs();
   startDinoGame();
 }
@@ -4058,6 +4075,7 @@ async function proceedToApp(){
     await loadEntries();
     showWelcome();
     subscribeToLiveUpdates();
+    subscribeToSessionRevocation();
   }catch(err){
     console.error('proceedToApp failed:', err);
     showOfflineScreen(err && err.message);
@@ -4102,6 +4120,7 @@ $('accessCodeSubmitBtn').addEventListener('click', async ()=>{
       } else {
         try{ await sb.rpc('link_code_to_session', { input_code: code }); }catch(linkErr){ console.error('link_code_to_session failed:', linkErr); }
         try{ localStorage.removeItem(PREVIEW_MODE_KEY); }catch(e){}
+        try{ localStorage.setItem(ACTIVE_CODE_KEY, code); }catch(e){}
         await new Promise(r => setTimeout(r, 500)); // даём время браузеру реально записать сессию перед перезагрузкой
         location.reload();
       }
@@ -4117,6 +4136,7 @@ $('accessCodeInput').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') $(
 $('gateAdminLoginBtn').addEventListener('click', ()=> openAdminModal());
 
 const PREVIEW_MODE_KEY = 'steam-preview-mode';
+const ACTIVE_CODE_KEY = 'steam-active-code'; // код, которым разблокировали доступ в ЭТОМ браузере — нужен, чтобы понять, что выкинули именно нас
 $('previewModeBtn').addEventListener('click', async ()=>{
   const btn = $('previewModeBtn');
   btn.disabled = true;
@@ -4155,6 +4175,15 @@ $('previewExitBtn').addEventListener('click', async ()=>{
     applyAdminUI();
 
     if(!session){
+      let wasRevoked = false;
+      try{
+        wasRevoked = localStorage.getItem('steam-access-revoked-flash') === '1';
+        localStorage.removeItem('steam-access-revoked-flash');
+      }catch(e){}
+      if(wasRevoked){
+        const errEl = $('accessGateError');
+        if(errEl){ errEl.textContent = 'Доступ по этому коду был отозван администратором'; errEl.style.display = ''; }
+      }
       accessGateScreen.classList.add('show');
       return; // дальше — как только код подтверждён (см. accessCodeSubmitBtn) или вошли как админ
     }
@@ -4214,6 +4243,29 @@ function subscribeToLiveUpdates(){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'collections' }, scheduleReload)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'collection_entries' }, scheduleReload)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'game_images' }, scheduleReload)
+    .subscribe();
+}
+
+// Мгновенный самопинок: если админ жмёт "Завершить сессию" (или просто удаляет код),
+// а покупатель в этот момент сидит на сайте с уже открытой вкладкой — эта подписка
+// узнаёт об этом за секунды и сама выкидывает его на экран ввода кода, не дожидаясь,
+// пока он сам что-нибудь перезагрузит.
+let revocationSubscribed = false;
+function subscribeToSessionRevocation(){
+  if(revocationSubscribed) return;
+  let myCode = null;
+  try{ myCode = localStorage.getItem(ACTIVE_CODE_KEY); }catch(e){}
+  if(!myCode) return; // не покупатель с кодом (админ или предпросмотр) — тут нечего слушать
+  revocationSubscribed = true;
+
+  sb.channel('public:session-revocation')
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'access_codes' }, (payload)=>{
+      if(payload.old && payload.old.code === myCode){
+        try{ localStorage.removeItem(ACTIVE_CODE_KEY); }catch(e){}
+        try{ localStorage.setItem('steam-access-revoked-flash', '1'); }catch(e){}
+        sb.auth.signOut().finally(()=> location.reload());
+      }
+    })
     .subscribe();
 }
 
