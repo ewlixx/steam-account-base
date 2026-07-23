@@ -2131,10 +2131,10 @@ function shuffleArray(arr){
 async function loadEntries(){
   const accountsSource = isPreviewMode ? 'accounts_preview' : 'accounts';
   const [accRes, collRes, linkRes, imgRes] = await Promise.all([
-    sb.from(accountsSource).select('*').order('created_at', { ascending: true }),
-    sb.from('collections').select('*').order('created_at', { ascending: true }),
-    sb.from('collection_entries').select('*'),
-    sb.from('game_images').select('*'),
+    sb.from(accountsSource).select('*').order('created_at', { ascending: true }).range(0, 19999),
+    sb.from('collections').select('*').order('created_at', { ascending: true }).range(0, 19999),
+    sb.from('collection_entries').select('*').range(0, 19999),
+    sb.from('game_images').select('*').range(0, 19999),
   ]);
 
   // Если провалились вообще все запросы — это похоже не на проблему с одной таблицей,
