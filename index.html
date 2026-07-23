@@ -1072,15 +1072,16 @@
   .noimg-name{font-family:var(--mc);font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .noimg-count{font-family:var(--mc);font-size:11px;color:var(--text-faint);flex-shrink:0;}
   .code-row{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    display:flex;align-items:center;gap:10px;
     background:var(--panel-2);
     border:1px solid var(--border);
     border-radius:10px;
     padding:9px 14px;
   }
   .code-row.used{opacity:.5;}
-  .code-row-text{font-family:var(--mc);font-size:13px;color:var(--text);letter-spacing:.5px;}
-  .code-row-status{font-family:var(--mc);font-size:11px;color:var(--text-faint);flex-shrink:0;}
+  .code-row-text{font-family:var(--mc);font-size:13px;color:var(--text);letter-spacing:.5px;flex:1;min-width:0;}
+  .code-row-status{font-family:var(--mc);font-size:11px;color:var(--text-faint);flex-shrink:0;width:74px;text-align:right;}
+  .code-row-actions{display:flex;align-items:center;gap:2px;flex-shrink:0;}
   .code-row-copy, .code-row-delete, .code-row-endsession{
     flex-shrink:0;padding:6px;height:auto;
     display:flex;align-items:center;justify-content:center;
@@ -2578,8 +2579,10 @@ async function renderAccessCodesList(){
     rowEl.innerHTML = `
       <span class="code-row-text">${escapeHtml(row.code)}</span>
       <span class="code-row-status">${row.used ? 'использован' : 'свободен'}</span>
-      <button class="btn-ghost code-row-copy" title="Скопировать">${iconCopy()}</button>
-      <button class="btn-ghost code-row-delete" title="Удалить код">${iconTrash()}</button>
+      <span class="code-row-actions">
+        <button class="btn-ghost code-row-copy" title="Скопировать">${iconCopy()}</button>
+        <button class="btn-ghost code-row-delete" title="Удалить код">${iconTrash()}</button>
+      </span>
     `;
     rowEl.querySelector('.code-row-copy').addEventListener('click', (ev)=> copyToClipboard(row.code, ev.currentTarget));
     rowEl.querySelector('.code-row-delete').addEventListener('click', async ()=>{
