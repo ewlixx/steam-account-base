@@ -2182,7 +2182,7 @@ async function loadEntries(){
 // Считает копирования логина/пароля — не блокирует UI и не показывает ошибок,
 // если не получилось (это просто статистика, а не критичная функция).
 function trackCopy(entryId){
-  if(!entryId) return;
+  if(!entryId || isPreviewMode) return;
   const entry = entries.find(e => e.id === entryId);
   if(entry) entry.copyCount = (entry.copyCount || 0) + 1;
   sb.rpc('increment_copy_count', { target_id: entryId }).then(({error})=>{
