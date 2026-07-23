@@ -1629,6 +1629,7 @@
   <div class="offline-inner">
     <h1 class="offline-title">Нет подключения</h1>
     <p class="offline-sub">Не удалось загрузить базу — проверьте интернет-соединение.<br>А пока можно размяться:</p>
+    <p class="offline-sub" id="offlineErrorDetail" style="display:none;font-size:12px;opacity:.7;font-family:var(--mc);"></p>
 
     <div class="offline-game-switch">
       <button class="offline-game-tab" id="tabBugGame">Баги</button>
@@ -4043,9 +4044,18 @@ updateToolbarForMode();
 updateColumnMode();
 
 const offlineScreen = $('offlineScreen');
-function showOfflineScreen(){
+function showOfflineScreen(errorDetail){
   document.body.classList.remove('theme-loading');
   offlineScreen.classList.add('show');
+  const detailEl = $('offlineErrorDetail');
+  if(detailEl){
+    if(errorDetail){
+      detailEl.textContent = 'Причина: ' + errorDetail;
+      detailEl.style.display = '';
+    } else {
+      detailEl.style.display = 'none';
+    }
+  }
   setupOfflineGameTabs();
   startDinoGame();
 }
@@ -4062,7 +4072,8 @@ async function proceedToApp(){
     showWelcome();
     subscribeToLiveUpdates();
   }catch(err){
-    showOfflineScreen();
+    console.error('proceedToApp failed:', err);
+    showOfflineScreen(err && err.message);
   }
 }
 
@@ -4169,7 +4180,8 @@ $('previewExitBtn').addEventListener('click', async ()=>{
 
     await proceedToApp();
   }catch(err){
-    showOfflineScreen();
+    console.error('boot sequence failed:', err);
+    showOfflineScreen(err && err.message);
   }
 })();
 
