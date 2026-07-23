@@ -1,0 +1,16 @@
+name: Keep Supabase Alive
+ 
+on:
+  schedule:
+    - cron: '0 12 */3 * *'  # раз в 3 дня, с запасом до недельного лимита неактивности
+  workflow_dispatch:  # можно запустить и вручную кнопкой на GitHub, для проверки
+ 
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase, чтобы проект не заснул от неактивности
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" "https://qeiyngefwvtvrsyxhqbf.supabase.co/rest/v1/" \
+            -H "apikey: sb_publishable_wjH2SZ2dm7QdSatbvbv_Wg_UBA6Ksx0"
+ 
