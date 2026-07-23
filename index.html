@@ -3961,27 +3961,14 @@ async function submitAdminLogin(){
 
 $('adminToggleBtn').addEventListener('click', async ()=>{
   if(isAdmin){
+    // Не трогаем сессию вообще: она уже аутентифицирована как админ, и RLS даёт ей
+    // доступ к настоящим (немаскированным) данным. Просто прячем админ-интерфейс —
+    // получается ровно то, что видит обычный покупатель с погашенным кодом.
+    // Раньше тут пересоздавали сессию (signOut + signInAnonymously), что и было
+    // источником всех гонок/багов с "нет подключения" — теперь это не нужно.
     isAdmin = false;
-    // Раньше тут был явный await sb.auth.signOut() перед signInAnonymously() —
-    // событие SIGNED_OUT иногда срабатывает уже ПОСЛЕ того, как анонимная сессия
-    // установлена, и затирает её, из-за чего следующие запросы к базе уходят без
-    // токена и всё выглядит как обрыв связи. Вход анонимом сам по себе полностью
-    // заменяет текущую сессию — отдельный signOut() не нужен и как раз создавал гонку.
-    let anonError = null;
-    for(let attempt = 0; attempt < 2; attempt++){
-      const res = await sb.auth.signInAnonymously();
-      anonError = res.error;
-      if(!anonError) break;
-      await new Promise(r => setTimeout(r, 400));
-    }
-    isPreviewMode = true; // без кода — только предпросмотр с замаскированными данными
-    try{ localStorage.setItem(PREVIEW_MODE_KEY, '1'); }catch(e){}
-    if(anonError){
-      // Перезагрузка страницы — проверенный рабочий способ подхватить чистую
-      // анонимную сессию с нуля, если гладкий переход всё же не удался.
-      location.reload();
-      return;
-    }
+    isPreviewMode = false;
+    try{ localStorage.removeItem(PREVIEW_MODE_KEY); }catch(e){}
     applyAdminUI();
     await proceedToApp();
     showToast('Вы вышли из режима администратора');
