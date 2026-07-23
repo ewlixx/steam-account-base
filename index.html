@@ -2182,8 +2182,22 @@ async function loadEntries(){
 
 // Считает копирования логина/пароля — не блокирует UI и не показывает ошибок,
 // если не получилось (это просто статистика, а не критичная функция).
+// Логин и пароль обычно копируют парой — если это происходит в течение
+// нескольких секунд для одного и того же аккаунта, засчитываем как ОДНО
+// действие, а не два: реальному человеку нужны оба значения для входа,
+// это одна попытка "скопировать доступ", а не два отдельных копирования.
+const recentCopyByEntry = new Map(); // entryId -> timestamp последнего засчитанного копирования
+const COPY_GROUP_WINDOW_MS = 8000;
+
 function trackCopy(entryId){
   if(!entryId || isPreviewMode) return;
+  const now = Date.now();
+  const lastCopyAt = recentCopyByEntry.get(entryId);
+  if(lastCopyAt && (now - lastCopyAt) < COPY_GROUP_WINDOW_MS){
+    return; // это вторая часть той же пары логин+пароль — уже засчитано
+  }
+  recentCopyByEntry.set(entryId, now);
+
   const entry = entries.find(e => e.id === entryId);
   if(entry) entry.copyCount = (entry.copyCount || 0) + 1;
   sb.rpc('increment_copy_count', { target_id: entryId }).then(({error})=>{
