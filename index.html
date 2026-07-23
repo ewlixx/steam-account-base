@@ -2092,22 +2092,31 @@ async function saveGameImages(){
 
 async function saveCollections(){
   if(collections.length === 0) return;
-  const { error: collError } = await sb.from('collections').upsert(
-    collections.map(c => ({ id: c.id, name: c.name, image: c.image || null }))
-  );
-  if(collError){ showToast('Не удалось сохранить коллекции: ' + collError.message); return; }
+  suppressLiveReload = true;
+  try{
+    const { error: collError } = await sb.from('collections').upsert(
+      collections.map(c => ({ id: c.id, name: c.name, image: c.image || null }))
+    );
+    if(collError){ showToast('Не удалось сохранить коллекции: ' + collError.message); return; }
 
-  // Синхронизируем состав каждой коллекции: сносим старые связи и ставим текущие заново —
-  // коллекций и записей в них немного, так что это дёшево и просто, без сложного дифа.
-  for(const c of collections){
-    await sb.from('collection_entries').delete().eq('collection_id', c.id);
-    const ids = c.entryIds || [];
-    if(ids.length > 0){
-      const { error: linkError } = await sb.from('collection_entries').insert(
-        ids.map(entryId => ({ collection_id: c.id, entry_id: entryId }))
-      );
-      if(linkError){ showToast('Не удалось сохранить состав коллекции: ' + linkError.message); }
+    // Синхронизируем состав каждой коллекции: сносим старые связи и ставим текущие заново —
+    // коллекций и записей в них немного, так что это дёшево и просто, без сложного дифа.
+    for(const c of collections){
+      await sb.from('collection_entries').delete().eq('collection_id', c.id);
+      const ids = c.entryIds || [];
+      if(ids.length > 0){
+        const { error: linkError } = await sb.from('collection_entries').insert(
+          ids.map(entryId => ({ collection_id: c.id, entry_id: entryId }))
+        );
+        if(linkError){ showToast('Не удалось сохранить состав коллекции: ' + linkError.message); }
+      }
     }
+  } finally {
+    // Небольшая пауза перед снятием флага — чтобы "эхо" наших же только что сделанных
+    // изменений (события realtime о них) точно долетело и было проигнорировано, а не
+    // запустило перезагрузку чуть позже с опозданием и не перебило наше явное обновление ниже.
+    setTimeout(()=>{ suppressLiveReload = false; }, 600);
+    await loadEntries(); // одна гарантированно консистентная перезагрузка из уже точно сохранённого состояния
   }
 }
 
@@ -4221,6 +4230,11 @@ $('previewExitBtn').addEventListener('click', async ()=>{
 // Слушаем изменения в базе от кого угодно (в том числе от себя же в другой вкладке) и
 // автоматически перезагружаем данные — без ручного обновления страницы.
 let liveUpdateTimer = null;
+// Пока true — realtime-подписка не запускает автоперезагрузку. Нужно на время
+// многошаговых сохранений (например, "удалить все связи коллекции → вставить заново"),
+// чтобы случайно не перезагрузить данные ровно в момент между шагами, увидев
+// промежуточное пустое состояние.
+let suppressLiveReload = false;
 let liveUpdatesSubscribed = false;
 function subscribeToLiveUpdates(){
   // proceedToApp() запускается заново при каждом входе/выходе из админки, но канал
@@ -4230,6 +4244,7 @@ function subscribeToLiveUpdates(){
   liveUpdatesSubscribed = true;
 
   function scheduleReload(){
+    if(suppressLiveReload) return;
     // Небольшая задержка и объединение частых подряд идущих изменений в одну перезагрузку,
     // чтобы при массовом редактировании не дёргать сеть на каждую отдельную запись.
     clearTimeout(liveUpdateTimer);
