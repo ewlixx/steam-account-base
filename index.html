@@ -3962,7 +3962,20 @@ $('adminToggleBtn').addEventListener('click', async ()=>{
   if(isAdmin){
     isAdmin = false;
     await sb.auth.signOut();
-    await sb.auth.signInAnonymously(); // теряем права админа, но не саму возможность зайти на сайт
+    // Анонимный вход сразу после signOut иногда не срабатывает с первого раза
+    // (гонка состояний в клиенте Supabase) — пробуем ещё раз перед тем, как сдаться.
+    let anonError = null;
+    for(let attempt = 0; attempt < 2; attempt++){
+      const res = await sb.auth.signInAnonymously();
+      anonError = res.error;
+      if(!anonError) break;
+      await new Promise(r => setTimeout(r, 400));
+    }
+    if(anonError){
+      applyAdminUI();
+      showToast('Не удалось выйти из режима администратора, попробуйте ещё раз: ' + anonError.message);
+      return;
+    }
     isPreviewMode = true; // без кода — только предпросмотр с замаскированными данными
     try{ localStorage.setItem(PREVIEW_MODE_KEY, '1'); }catch(e){}
     applyAdminUI();
