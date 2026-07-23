@@ -2102,13 +2102,21 @@ async function saveCollections(){
     // Синхронизируем состав каждой коллекции: сносим старые связи и ставим текущие заново —
     // коллекций и записей в них немного, так что это дёшево и просто, без сложного дифа.
     for(const c of collections){
-      await sb.from('collection_entries').delete().eq('collection_id', c.id);
+      console.log('[saveCollections] collection', c.id, c.name, '— записываю entryIds:', c.entryIds);
+      const { error: delError } = await sb.from('collection_entries').delete().eq('collection_id', c.id);
+      if(delError) console.error('[saveCollections] ошибка удаления старых связей:', delError);
       const ids = c.entryIds || [];
       if(ids.length > 0){
-        const { error: linkError } = await sb.from('collection_entries').insert(
+        const { data: insData, error: linkError } = await sb.from('collection_entries').insert(
           ids.map(entryId => ({ collection_id: c.id, entry_id: entryId }))
-        );
-        if(linkError){ showToast('Не удалось сохранить состав коллекции: ' + linkError.message); }
+        ).select();
+        if(linkError){
+          console.error('[saveCollections] ошибка вставки связей:', linkError);
+          alert('Не удалось сохранить состав коллекции «' + c.name + '»:\n\n' + linkError.message + '\n\n(код: ' + (linkError.code || '—') + ')');
+          showToast('Не удалось сохранить состав коллекции: ' + linkError.message);
+        } else {
+          console.log('[saveCollections] вставлено строк:', insData ? insData.length : 0, insData);
+        }
       }
     }
   } finally {
@@ -2117,6 +2125,7 @@ async function saveCollections(){
     // запустило перезагрузку чуть позже с опозданием и не перебило наше явное обновление ниже.
     setTimeout(()=>{ suppressLiveReload = false; }, 600);
     await loadEntries(); // одна гарантированно консистентная перезагрузка из уже точно сохранённого состояния
+    console.log('[saveCollections] после перезагрузки коллекции:', collections.map(c => ({ id: c.id, name: c.name, count: (c.entryIds||[]).length })));
   }
 }
 
