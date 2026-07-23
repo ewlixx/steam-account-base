@@ -3961,9 +3961,11 @@ async function submitAdminLogin(){
 $('adminToggleBtn').addEventListener('click', async ()=>{
   if(isAdmin){
     isAdmin = false;
-    await sb.auth.signOut();
-    // Анонимный вход сразу после signOut иногда не срабатывает с первого раза
-    // (гонка состояний в клиенте Supabase) — пробуем ещё раз перед тем, как сдаться.
+    // Раньше тут был явный await sb.auth.signOut() перед signInAnonymously() —
+    // событие SIGNED_OUT иногда срабатывает уже ПОСЛЕ того, как анонимная сессия
+    // установлена, и затирает её, из-за чего следующие запросы к базе уходят без
+    // токена и всё выглядит как обрыв связи. Вход анонимом сам по себе полностью
+    // заменяет текущую сессию — отдельный signOut() не нужен и как раз создавал гонку.
     let anonError = null;
     for(let attempt = 0; attempt < 2; attempt++){
       const res = await sb.auth.signInAnonymously();
@@ -3971,13 +3973,14 @@ $('adminToggleBtn').addEventListener('click', async ()=>{
       if(!anonError) break;
       await new Promise(r => setTimeout(r, 400));
     }
-    if(anonError){
-      applyAdminUI();
-      showToast('Не удалось выйти из режима администратора, попробуйте ещё раз: ' + anonError.message);
-      return;
-    }
     isPreviewMode = true; // без кода — только предпросмотр с замаскированными данными
     try{ localStorage.setItem(PREVIEW_MODE_KEY, '1'); }catch(e){}
+    if(anonError){
+      // Перезагрузка страницы — проверенный рабочий способ подхватить чистую
+      // анонимную сессию с нуля, если гладкий переход всё же не удался.
+      location.reload();
+      return;
+    }
     applyAdminUI();
     await proceedToApp();
     showToast('Вы вышли из режима администратора');
