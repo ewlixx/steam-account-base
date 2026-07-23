@@ -2192,7 +2192,7 @@ function trackCopy(entryId){
 
 function copyToClipboard(text, btn){
   if(isPreviewMode){
-    showToast('Доступно только после покупки кода');
+    showToast('Доступно только после оплаты товара');
     return;
   }
   function markCopied(){
@@ -2752,14 +2752,14 @@ function render(){
           <div class="cred">
             <div class="cred-col">
               <div class="cred-label">Логин</div>
-              <div class="cred-value">${maskCredentials ? '••••••••' : escapeHtml(e.login)}</div>
+              <div class="cred-value">${(maskCredentials || isPreviewMode) ? '••••••••' : escapeHtml(e.login)}</div>
             </div>
             <button class="copy-btn login-copy" title="Скопировать логин">${iconCopy()}</button>
           </div>
           <div class="cred">
             <div class="cred-col">
               <div class="cred-label">Пароль</div>
-              <div class="cred-value">${maskCredentials ? '••••••••' : escapeHtml(e.password)}</div>
+              <div class="cred-value">${(maskCredentials || isPreviewMode) ? '••••••••' : escapeHtml(e.password)}</div>
             </div>
             <button class="copy-btn pass-copy" title="Скопировать пароль">${iconCopy()}</button>
           </div>
@@ -3052,7 +3052,7 @@ function updateToolbarForMode(){
     } else if(currentAccountKey){
       const g = getAccountGroups().find(x=>x.key===currentAccountKey);
       accountFilterBar.style.display = 'flex';
-      $('accountFilterName').textContent = g ? (maskCredentials ? '••••••••' : g.login) : '';
+      $('accountFilterName').textContent = g ? ((maskCredentials || isPreviewMode) ? '••••••••' : g.login) : '';
     }
   }
 }
@@ -3241,14 +3241,14 @@ function renderAccountsBrowser(){
           <div class="cred">
             <div class="cred-col">
               <span class="cred-label">Логин</span>
-              <span class="cred-value">${maskCredentials ? '••••••••' : escapeHtml(g.login)}</span>
+              <span class="cred-value">${(maskCredentials || isPreviewMode) ? '••••••••' : escapeHtml(g.login)}</span>
             </div>
             <button class="copy-btn account-login-copy" title="Скопировать логин">${iconCopy()}</button>
           </div>
           <div class="cred">
             <div class="cred-col">
               <span class="cred-label">Пароль</span>
-              <span class="cred-value">${maskCredentials ? '••••••••' : escapeHtml(g.password)}</span>
+              <span class="cred-value">${(maskCredentials || isPreviewMode) ? '••••••••' : escapeHtml(g.password)}</span>
             </div>
             <button class="copy-btn account-pass-copy" title="Скопировать пароль">${iconCopy()}</button>
           </div>
@@ -4013,7 +4013,7 @@ $('testOfflineBtn').addEventListener('click', ()=> showOfflineScreen());
 $('maskToggleBtn').addEventListener('click', ()=>{
   maskCredentials = !maskCredentials;
   $('maskToggleBtn').classList.toggle('is-active', maskCredentials);
-  $('maskToggleBtn').title = maskCredentials ? 'Показать логины и пароли' : 'Скрыть логины и пароли звёздочками';
+  $('maskToggleBtn').title = (maskCredentials || isPreviewMode) ? 'Показать логины и пароли' : 'Скрыть логины и пароли звёздочками';
   render();
 });
 
