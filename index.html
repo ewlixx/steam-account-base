@@ -4298,6 +4298,12 @@ function subscribeToLiveUpdates(){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'collections' }, scheduleReload)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'collection_entries' }, scheduleReload)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'game_images' }, scheduleReload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'access_codes' }, ()=>{
+      // Обновляем список кодов сам по себе, не трогая основную загрузку данных —
+      // видно сразу, как только покупатель погасил код, без обновления страницы.
+      const overlay = $('accessCodesOverlay');
+      if(overlay && overlay.classList.contains('show')) renderAccessCodesList();
+    })
     .subscribe();
 }
 
