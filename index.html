@@ -2,6 +2,8 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0f1a">
 <title>Steam — база аккаунтов</title>
 <link rel="icon" type="image/png" href="icon.png">
 <script>
@@ -635,6 +637,14 @@
   @media (max-width:480px){
     .card-main{flex-direction:column;}
     .card-thumb{width:100%;aspect-ratio:460/215;}
+  }
+  @media (max-width:560px){
+    h1{font-size:18px;gap:8px;flex-wrap:wrap;}
+    .header-row{flex-wrap:wrap;}
+    .header-admin-btns{flex-wrap:wrap;justify-content:flex-end;}
+    .search-box{min-width:0;flex-basis:100%;}
+    .theme-popover{left:auto;right:0;transform:translateY(-6px);}
+    .theme-popover.show{transform:translateY(0);}
   }
 
   .card-top{
