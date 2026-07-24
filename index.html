@@ -1091,7 +1091,7 @@
   .code-row.used{opacity:.5;}
   .code-row-text{font-family:var(--mc);font-size:13px;color:var(--text);letter-spacing:.5px;flex:1;min-width:0;}
   .code-row-status{font-family:var(--mc);font-size:11px;color:var(--text-faint);flex-shrink:0;white-space:nowrap;text-align:right;}
-  .code-row-actions{display:flex;align-items:center;gap:2px;flex-shrink:0;}
+  .code-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:2px;flex-shrink:0;min-width:90px;}
   .code-row-copy, .code-row-delete, .code-row-endsession{
     flex-shrink:0;padding:6px;height:auto;
     display:flex;align-items:center;justify-content:center;
@@ -2608,7 +2608,8 @@ function generateRandomCode(){
 
 async function renderAccessCodesList(){
   const listEl = $('accessCodesList');
-  listEl.innerHTML = `<div class="dupe-empty">Загрузка...</div>`;
+  const isFirstLoad = listEl.children.length === 0;
+  if(isFirstLoad) listEl.innerHTML = `<div class="dupe-empty">Загрузка...</div>`;
   const { data, error } = await sb.from('access_codes').select('*').order('created_at', { ascending: false }).limit(30);
   if(error){
     listEl.innerHTML = `<div class="dupe-empty">Не удалось загрузить: ${escapeHtml(error.message)}</div>`;
@@ -2618,7 +2619,10 @@ async function renderAccessCodesList(){
     listEl.innerHTML = `<div class="dupe-empty">Кодов пока нет — сгенерируй первый</div>`;
     return;
   }
-  listEl.innerHTML = '';
+  // Строим новый список в отдельном фрагменте и подменяем разом — без промежуточного
+  // "Загрузка..." и без полного исчезновения старого списка, чтобы обновление по
+  // realtime (кто-то погасил код) не дёргало экран.
+  const frag = document.createDocumentFragment();
   for(const row of data){
     const rowEl = document.createElement('div');
     rowEl.className = 'code-row' + (row.used ? ' used' : '');
@@ -2626,8 +2630,8 @@ async function renderAccessCodesList(){
       <span class="code-row-text">${escapeHtml(row.code)}</span>
       <span class="code-row-status">${row.used ? 'использован' : 'свободен'}</span>
       <span class="code-row-actions">
-        <button class="btn-ghost code-row-copy" title="Скопировать">${iconCopy()}</button>
         ${row.used ? `<button class="btn-ghost code-row-endsession" title="Завершить сессию — жёстко отозвать доступ прямо сейчас">${iconEndSession()}</button>` : ''}
+        <button class="btn-ghost code-row-copy" title="Скопировать">${iconCopy()}</button>
         <button class="btn-ghost code-row-delete" title="Удалить код">${iconTrash()}</button>
       </span>
     `;
@@ -2664,8 +2668,10 @@ async function renderAccessCodesList(){
       showToast('Код удалён');
       renderAccessCodesList();
     });
-    listEl.appendChild(rowEl);
+    frag.appendChild(rowEl);
   }
+  listEl.innerHTML = '';
+  listEl.appendChild(frag);
 }
 
 $('accessCodesBtn').addEventListener('click', ()=>{
