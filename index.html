@@ -1089,9 +1089,9 @@
     padding:9px 14px;
   }
   .code-row.used{opacity:.5;}
-  .code-row-text{font-family:var(--mc);font-size:13px;color:var(--text);letter-spacing:.5px;flex:1;min-width:0;}
-  .code-row-status{font-family:var(--mc);font-size:11px;color:var(--text-faint);flex:0 0 78px;width:78px;white-space:nowrap;text-align:right;}
-  .code-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:2px;flex-shrink:0;min-width:90px;}
+  .code-row-text{font-family:var(--mc);font-size:13px;color:var(--text);letter-spacing:.5px;flex:0 0 auto;}
+  .code-row-status{font-family:var(--mc);font-size:11px;color:var(--text-faint);flex:1;white-space:nowrap;text-align:center;}
+  .code-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:2px;flex-shrink:0;}
   .code-row-copy, .code-row-delete, .code-row-endsession{
     flex-shrink:0;padding:6px;height:auto;
     display:flex;align-items:center;justify-content:center;
@@ -2625,9 +2625,9 @@ async function renderAccessCodesList(){
     rowEl.className = 'code-row' + (row.used ? ' used' : '');
     rowEl.innerHTML = `
       <span class="code-row-text">${escapeHtml(row.code)}</span>
+      ${row.used ? `<button class="btn-ghost code-row-endsession" title="Завершить сессию — жёстко отозвать доступ прямо сейчас">${iconEndSession()}</button>` : ''}
       <span class="code-row-status">${row.used ? 'использован' : 'свободен'}</span>
       <span class="code-row-actions">
-        ${row.used ? `<button class="btn-ghost code-row-endsession" title="Завершить сессию — жёстко отозвать доступ прямо сейчас">${iconEndSession()}</button>` : ''}
         <button class="btn-ghost code-row-copy" title="Скопировать">${iconCopy()}</button>
         <button class="btn-ghost code-row-delete" title="Удалить код">${iconTrash()}</button>
       </span>
