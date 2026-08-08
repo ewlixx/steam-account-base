@@ -223,6 +223,7 @@
     border-radius:999px;
     padding:6px 12px 6px 10px;
     text-decoration:none;
+    cursor:pointer;
     transition:color .15s ease, border-color .15s ease, background .15s ease;
   }
   .social-link:hover{color:var(--accent);border-color:var(--border-strong);background:var(--panel-2);}
@@ -827,6 +828,90 @@
   }
   .modal h2{font-family:var(--mc);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.3px;}
   .modal .hint{font-family:var(--mc);font-size:12.5px;color:var(--text-faint);margin:0 0 18px;}
+  .instruction-screen{
+    display:none;
+    min-height:100vh;
+    position:relative;
+  }
+  .instruction-screen.show{display:block;}
+  body.instruction-open .wrap{display:none;}
+  .instruction-page{
+    max-width:640px;width:100%;
+    margin:0 auto;
+    padding:60px 24px 80px;
+    position:relative;
+    z-index:1;
+  }
+  .instruction-close{
+    position:fixed;top:20px;right:20px;
+    width:38px;height:38px;border-radius:50%;
+    background:var(--panel-2);border:1px solid var(--border);
+    color:var(--text-dim);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    transition:color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .instruction-close:hover{color:var(--text);border-color:var(--border-strong);background:var(--panel);}
+  .instruction-title{
+    display:flex;align-items:center;gap:11px;
+    font-family:var(--mc);font-size:24px;font-weight:600;
+    color:var(--text);margin:0 0 8px;letter-spacing:.2px;
+  }
+  .instruction-title svg{flex-shrink:0;color:var(--accent);}
+  .instruction-lead{
+    font-family:var(--mc);font-size:13px;color:var(--text-faint);
+    margin:0 0 30px;
+  }
+  .instruction-steps{
+    margin:0 0 34px;padding:0;list-style:none;counter-reset:step;
+  }
+  .instruction-steps li{
+    font-family:var(--mc);font-size:13.5px;color:var(--text);line-height:1.6;
+    display:flex;gap:14px;
+    padding-bottom:16px;margin-bottom:16px;
+    border-bottom:1px solid var(--border);
+  }
+  .instruction-steps li:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+  .instruction-steps li::before{
+    counter-increment:step;content:counter(step);
+    flex-shrink:0;width:26px;height:26px;border-radius:50%;
+    background:var(--accent-dim);color:var(--accent);
+    font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    margin-top:1px;
+  }
+  .instruction-step-text strong{color:var(--text);}
+  .instruction-section{margin-bottom:30px;}
+  .instruction-section-title{
+    display:flex;align-items:center;gap:9px;
+    font-family:var(--mc);font-size:15px;font-weight:600;color:var(--text);
+    margin:0 0 14px;letter-spacing:.2px;
+  }
+  .instruction-section-title svg{flex-shrink:0;color:var(--accent);}
+  .instruction-text{
+    font-family:var(--mc);font-size:13px;color:var(--text-dim);line-height:1.65;
+    margin:0;
+  }
+  .instruction-issues{display:flex;flex-direction:column;gap:16px;}
+  .instruction-issue{
+    padding-bottom:16px;
+    border-bottom:1px solid var(--border);
+  }
+  .instruction-issue:last-child{border-bottom:none;padding-bottom:0;}
+  .instruction-issue-title{
+    font-family:var(--mc);font-size:13px;font-weight:600;color:var(--text);
+    margin-bottom:5px;
+  }
+  .instruction-issue-body{
+    font-family:var(--mc);font-size:12.5px;color:var(--text-dim);line-height:1.6;
+  }
+  .instruction-bottom-close{
+    width:100%;margin-top:10px;
+    justify-content:center;
+    border-color:rgba(var(--accent-rgb),.5);
+    color:var(--accent);
+  }
+  .instruction-bottom-close:hover{border-color:var(--accent);background:var(--accent-dim);}
   .field{margin-bottom:14px;}
   .field label{font-family:var(--mc);display:block;font-size:11px;color:var(--text-dim);margin-bottom:6px;font-weight:500;letter-spacing:.3px;}
   .field input{
@@ -1381,6 +1466,10 @@
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42Z"/><circle cx="7.5" cy="7.5" r=".6" fill="currentColor"/></svg>
         Playerok
       </a>
+      <button class="social-link" id="instructionBtn" type="button">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+        Инструкция
+      </button>
       <a class="social-link social-link-donate" href="https://www.donationalerts.com/r/ewlixxshop" target="_blank" rel="noopener noreferrer">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/></svg>
         Поддержать проект
@@ -1594,6 +1683,78 @@
     </div>
   </div>
 </div>
+
+<div class="instruction-screen" id="instructionScreen">
+  <div class="instruction-page">
+    <button class="instruction-close" id="instructionCloseBtn" title="Закрыть">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <h1 class="instruction-title">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Как войти в аккаунт
+    </h1>
+    <p class="instruction-lead">Пять шагов от установки Steam до спокойной игры без внезапных вылетов.</p>
+
+    <ol class="instruction-steps">
+      <li>
+        <span class="instruction-step-text">Скачайте и откройте Steam</span>
+      </li>
+      <li>
+        <span class="instruction-step-text">Войдите под логином и паролем, которые получили после покупки</span>
+      </li>
+      <li>
+        <span class="instruction-step-text">Найдите нужную игру в библиотеке и нажмите «Установить»</span>
+      </li>
+      <li>
+        <span class="instruction-step-text"><strong>Один раз запустите игру с доступом в интернет</strong> — это активирует лицензию на вашем устройстве. Дождитесь, пока откроется главное меню игры, и только после этого её можно закрыть.</span>
+      </li>
+      <li>
+        <span class="instruction-step-text">Дальше переключите Steam в автономный режим: меню «Steam» в левом верхнем углу клиента → «Перейти в автономный режим». Так вы не столкнётесь с вылетом из игры, если кто-то другой одновременно войдёт на этот же аккаунт.</span>
+      </li>
+    </ol>
+
+    <div class="instruction-section">
+      <h2 class="instruction-section-title">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Частые проблемы
+      </h2>
+      <div class="instruction-issues">
+        <div class="instruction-issue">
+          <div class="instruction-issue-title">Игра вылетает, в углу код ошибки 50 или 5</div>
+          <div class="instruction-issue-body">Кто-то ещё пытается зайти на аккаунт в этот же момент. Подождите пару минут и попробуйте снова — обычно после короткой паузы вход проходит успешно.</div>
+        </div>
+        <div class="instruction-issue">
+          <div class="instruction-issue-title">Steam предлагает только «Транслировать» или «Подключиться», а не скачать игру</div>
+          <div class="instruction-issue-body">Нажмите на маленькую стрелку справа от этой кнопки и выберите «Этот компьютер» — начнётся обычная загрузка.</div>
+        </div>
+        <div class="instruction-issue">
+          <div class="instruction-issue-title">Кто-то играет одновременно с вами</div>
+          <div class="instruction-issue-body">Отключите удалённый доступ: «Steam» → «Настройки» → «Remote Play» → снимите галочку.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="instruction-section">
+      <h2 class="instruction-section-title">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.61 16.95A5 5 0 0 0 18 10h-1.26a8 8 0 0 0-7.05-6"/><path d="M5 5a8 8 0 0 0 4 15h9a5 5 0 0 0 1.7-.3"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        Отключите облачные сохранения
+      </h2>
+      <p class="instruction-text">Steam Cloud может конфликтовать с сохранениями других пользователей этого же аккаунта. Чтобы обезопасить свой прогресс: правой кнопкой по игре в библиотеке → «Свойства» → отключите синхронизацию облачных сохранений, если она включена.</p>
+    </div>
+
+    <div class="instruction-section">
+      <h2 class="instruction-section-title">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        Если ничего не помогло
+      </h2>
+      <p class="instruction-text">Проверьте, что логин и пароль введены без лишних пробелов — это самая частая причина ошибки входа. Если аккаунт просит код с почты или Steam Guard, либо что-то другое не сходится — напишите нам в наш Telegram-канал, поможем разобраться.</p>
+    </div>
+
+    <button class="btn btn-ghost instruction-bottom-close" id="instructionCloseBtnBottom">Закрыть инструкцию</button>
+  </div>
+</div>
+
 
 <div class="overlay" id="accessCodesOverlay">
   <div class="modal" style="max-width:480px">
@@ -2284,6 +2445,26 @@ const recentCopyByEntry = new Map;
 
 const COPY_GROUP_WINDOW_MS = 8e3;
 
+const credentialCopyTimestamps = [];
+
+const CREDENTIAL_COPY_LIMIT = 10;
+
+const CREDENTIAL_COPY_WINDOW_MS = 120000;
+
+function canCopyCredentialNow() {
+  if (isAdmin) return true;
+  const now = Date.now();
+  while (credentialCopyTimestamps.length && now - credentialCopyTimestamps[0] > CREDENTIAL_COPY_WINDOW_MS) {
+    credentialCopyTimestamps.shift();
+  }
+  if (credentialCopyTimestamps.length >= CREDENTIAL_COPY_LIMIT) {
+    showToast("Слишком много копирований подряд — подождите пару минут");
+    return false;
+  }
+  credentialCopyTimestamps.push(now);
+  return true;
+}
+
 function trackCopy(entryId) {
   if (!entryId || isPreviewMode) return;
   const now = Date.now();
@@ -2878,10 +3059,12 @@ function render() {
     card.dataset.gameKey = gameKey;
     card.innerHTML = `\n      <div class="card-top">\n        <div class="game-name">${escapeHtml(e.game)}</div>\n        <span class="status-badge ${e.working !== false ? "is-ok" : "is-off"}">${e.working !== false ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Рабочий' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Нерабочий'}</span>\n        <a class="btn-ghost steam-link-btn" href="https://store.steampowered.com/search/?term=${encodeURIComponent(e.game)}" target="_blank" rel="noopener noreferrer" title="Открыть в Steam">${iconSteam()}</a>\n        <button class="switch admin-only ${e.working !== false ? "on" : ""}" title="${e.working !== false ? "Рабочий аккаунт" : "Нерабочий аккаунт"}"></button>\n        <div class="card-actions admin-only">\n          <button class="btn-ghost edit-btn" title="Редактировать">${iconEdit()}</button>\n          <button class="btn-ghost btn-danger-ghost del-btn" title="Удалить">${iconTrash()}</button>\n        </div>\n      </div>\n      <div class="card-main">\n        <div class="card-thumb"></div>\n        <div class="cred-grid">\n          <div class="cred">\n            <div class="cred-col">\n              <div class="cred-label">Логин</div>\n              <div class="cred-value">${maskCredentials || isPreviewMode ? "••••••••" : escapeHtml(e.login)}</div>\n            </div>\n            <button class="copy-btn login-copy" title="Скопировать логин">${iconCopy()}</button>\n          </div>\n          <div class="cred">\n            <div class="cred-col">\n              <div class="cred-label">Пароль</div>\n              <div class="cred-value">${maskCredentials || isPreviewMode ? "••••••••" : escapeHtml(e.password)}</div>\n            </div>\n            <button class="copy-btn pass-copy" title="Скопировать пароль">${iconCopy()}</button>\n          </div>\n        </div>\n      </div>\n    `;
     card.querySelector(".login-copy").addEventListener("click", ev => {
+      if (!canCopyCredentialNow()) return;
       copyToClipboard(e.login, ev.currentTarget);
       trackCopy(e.id);
     });
     card.querySelector(".pass-copy").addEventListener("click", ev => {
+      if (!canCopyCredentialNow()) return;
       copyToClipboard(e.password, ev.currentTarget);
       trackCopy(e.id);
     });
@@ -3365,12 +3548,14 @@ function renderAccountsBrowser() {
     });
     card.querySelector(".account-login-copy").addEventListener("click", ev => {
       ev.stopPropagation();
+      if (!canCopyCredentialNow()) return;
       copyToClipboard(g.login, ev.currentTarget);
       const rep = entries.find(x => x.login.toLowerCase() === g.login.toLowerCase() && x.password === g.password);
       trackCopy(rep && rep.id);
     });
     card.querySelector(".account-pass-copy").addEventListener("click", ev => {
       ev.stopPropagation();
+      if (!canCopyCredentialNow()) return;
       copyToClipboard(g.password, ev.currentTarget);
       const rep = entries.find(x => x.login.toLowerCase() === g.login.toLowerCase() && x.password === g.password);
       trackCopy(rep && rep.id);
@@ -4323,6 +4508,23 @@ noImageOverlay.addEventListener("click", e => {
   if (e.target === noImageOverlay) noImageOverlay.classList.remove("show");
 });
 
+const instructionScreen = $("instructionScreen");
+
+function openInstructionScreen() {
+  document.body.classList.add("instruction-open");
+  instructionScreen.classList.add("show");
+  window.scrollTo({ top: 0 });
+}
+
+$("instructionBtn").addEventListener("click", openInstructionScreen);
+
+function closeInstructionScreen() {
+  instructionScreen.classList.remove("show");
+  document.body.classList.remove("instruction-open");
+}
+$("instructionCloseBtn").addEventListener("click", closeInstructionScreen);
+$("instructionCloseBtnBottom").addEventListener("click", closeInstructionScreen);
+
 $("testOfflineBtn").addEventListener("click", () => showOfflineScreen());
 
 $("maskToggleBtn").addEventListener("click", () => {
@@ -4466,6 +4668,11 @@ $("previewExitBtn").addEventListener("click", async () => {
   const savedTheme = await storageGet(THEME_KEY);
   applyTheme(savedTheme || "blue");
   document.body.classList.remove("theme-loading");
+  const urlParams = new URLSearchParams(location.search);
+  if (urlParams.get("instruction") === "1") {
+    openInstructionScreen();
+    return;
+  }
   if (!navigator.onLine || !sb) {
     showOfflineScreen();
     return;
