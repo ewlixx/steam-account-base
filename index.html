@@ -835,6 +835,7 @@
   }
   .instruction-screen.show{display:block;}
   body.instruction-open .wrap{display:none;}
+  body.instruction-open .offline-screen.show{display:none !important;}
   .instruction-page{
     max-width:640px;width:100%;
     margin:0 auto;
@@ -4671,7 +4672,6 @@ $("previewExitBtn").addEventListener("click", async () => {
   const urlParams = new URLSearchParams(location.search);
   if (urlParams.get("instruction") === "1") {
     openInstructionScreen();
-    return;
   }
   if (!navigator.onLine || !sb) {
     showOfflineScreen();
